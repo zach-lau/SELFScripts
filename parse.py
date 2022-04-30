@@ -41,6 +41,8 @@ class Application():
         self.start = load_field(reader, "Start Date of Activity") 
         self.end = load_field(reader, "End Date of Activity")
         self.location = load_field(reader, "Location of Activity")
+        # This has a really messed up name
+        self.description = load_field(reader, "Description of Activity 50100 wordsRow1")
     def to_string(self):
         """
         Print out so it is applicable to paste into a csv
@@ -96,6 +98,29 @@ def interpret(dir, outfile):
             for app in apps:
                 outfile.write(app.to_string())
                 outfile.write("\n")
+
+def run_for_each(zipfolder : str, func):
+    """
+    Run `func` for each application found in `zipfolder`
+
+    Args:
+        zipfolder: path to parent folder of the root folder containing all
+            applications
+        func: funciton taking an application argument
+    """
+    parents = [os.path.join(zipfolder, x) for x in os.listdir(zipfolder)] # Get children
+    parents = list(filter(os.path.isdir, parents)) # Get only dirs
+    p = parents[0] # Assume there's only one valid dir. This is kinda bad but ok for now
+    for child in os.listdir(p):
+        child = os.path.join(p, child)
+        if os.path.isdir(child):
+            pdfs = find_application(child) # Get all the applications
+            for pdf in pdfs:
+                try:
+                    app = Application(pdf)
+                except:
+                    print("Error reading file")
+                func(app)
 
 if __name__ == "__main__":
     # TODO Add parsing of the excel files to figure out the amount requested
